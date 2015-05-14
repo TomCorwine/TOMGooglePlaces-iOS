@@ -13,7 +13,7 @@ typedef void (^TOMGooglePlaceResults)(NSArray *places, NSError *error);
 
 @interface TOMGooglePlace : NSObject
 
-+ (void)placesFromString:(NSString *)string coordinate:(CLLocationCoordinate2D)coordinate completionBlock:(TOMGooglePlaceResults)completionBlock;
++ (void)placesFromString:(NSString *)string location:(CLLocation *)location completionBlock:(TOMGooglePlaceResults)completionBlock;
 
 @property (nonatomic, strong, readonly) NSString *identifier;
 @property (nonatomic, strong, readonly) NSString *addressDescription;

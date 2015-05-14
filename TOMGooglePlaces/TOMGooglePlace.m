@@ -29,24 +29,24 @@ const NSString *kGoogleAPIKey = @"";
 
 #pragma mark - Fetching
 
-+ (void)placesFromString:(NSString *)string coordinate:(CLLocationCoordinate2D)coordinate completionBlock:(TOMGooglePlaceResults)completionBlock
++ (void)placesFromString:(NSString *)string location:(CLLocation *)location completionBlock:(TOMGooglePlaceResults)completionBlock
 {
     NSAssert(completionBlock, @"What'd think you're doing calling this without a completion block?");
+    NSAssert(string, @"Ummm, the string is nil.");
 
-    if (nil == string) {
-        completionBlock(nil, [NSError errorWithDomain:@"Ummm, the string is nil." code:999 userInfo:nil]);
-        return;
-    }
-
-    NSString *locationString = [NSString stringWithFormat:@"%f,%f", coordinate.latitude, coordinate.longitude];
-    NSDictionary *parameters = @{
+    NSMutableDictionary *parameters = @{
                                  @"input": string,
                                  @"key": kGoogleAPIKey,
                                  @"types": @"address",
-                                 @"location": locationString,
-                                 @"radius": @"500",
                                  @"language": @"en"
-                                 };
+                                 }.mutableCopy;
+
+    if (location)
+    {
+        CLLocationCoordinate2D coordinate = location.coordinate;
+        NSString *locationString = [NSString stringWithFormat:@"%f,%f", coordinate.latitude, coordinate.longitude];
+        [parameters addEntriesFromDictionary:@{@"location": locationString, @"radius": @"500"}];
+    }
 
     NSURL *url = [NSURL URLWithString:@"https://maps.googleapis.com/maps/api/place/autocomplete/json"];
     url = [url urlParamters_URLWithQueryParameters:parameters];
