@@ -7,8 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F1AC75CF1AFBFDBF00592C21 /* TOMGooglePlaces.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = F1AC75CE1AFBFDBF00592C21 /* TOMGooglePlaces.h */; };
-		F1AC75D11AFBFDBF00592C21 /* TOMGooglePlaces.m in Sources */ = {isa = PBXBuildFile; fileRef = F1AC75D01AFBFDBF00592C21 /* TOMGooglePlaces.m */; };
+		F19E0A091AFBFFA900536453 /* TOMGooglePlace.m in Sources */ = {isa = PBXBuildFile; fileRef = F19E0A081AFBFFA900536453 /* TOMGooglePlace.m */; };
+		F19E0A0C1AFC024100536453 /* TOMGooglePlaceTerm.m in Sources */ = {isa = PBXBuildFile; fileRef = F19E0A0B1AFC024100536453 /* TOMGooglePlaceTerm.m */; };
+		F19E0A111AFC04FB00536453 /* NSString+URLEscaping.m in Sources */ = {isa = PBXBuildFile; fileRef = F19E0A0E1AFC04FB00536453 /* NSString+URLEscaping.m */; };
+		F19E0A121AFC04FB00536453 /* NSURL+URLParameters.m in Sources */ = {isa = PBXBuildFile; fileRef = F19E0A101AFC04FB00536453 /* NSURL+URLParameters.m */; };
 		F1AC75D71AFBFDBF00592C21 /* libTOMGooglePlaces.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F1AC75CB1AFBFDBF00592C21 /* libTOMGooglePlaces.a */; };
 /* End PBXBuildFile section */
 
@@ -29,16 +31,21 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
-				F1AC75CF1AFBFDBF00592C21 /* TOMGooglePlaces.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F19E0A071AFBFFA900536453 /* TOMGooglePlace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TOMGooglePlace.h; sourceTree = "<group>"; };
+		F19E0A081AFBFFA900536453 /* TOMGooglePlace.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TOMGooglePlace.m; sourceTree = "<group>"; };
+		F19E0A0A1AFC024100536453 /* TOMGooglePlaceTerm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TOMGooglePlaceTerm.h; sourceTree = "<group>"; };
+		F19E0A0B1AFC024100536453 /* TOMGooglePlaceTerm.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TOMGooglePlaceTerm.m; sourceTree = "<group>"; };
+		F19E0A0D1AFC04FB00536453 /* NSString+URLEscaping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+URLEscaping.h"; sourceTree = "<group>"; };
+		F19E0A0E1AFC04FB00536453 /* NSString+URLEscaping.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+URLEscaping.m"; sourceTree = "<group>"; };
+		F19E0A0F1AFC04FB00536453 /* NSURL+URLParameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURL+URLParameters.h"; sourceTree = "<group>"; };
+		F19E0A101AFC04FB00536453 /* NSURL+URLParameters.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSURL+URLParameters.m"; sourceTree = "<group>"; };
 		F1AC75CB1AFBFDBF00592C21 /* libTOMGooglePlaces.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTOMGooglePlaces.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		F1AC75CE1AFBFDBF00592C21 /* TOMGooglePlaces.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TOMGooglePlaces.h; sourceTree = "<group>"; };
-		F1AC75D01AFBFDBF00592C21 /* TOMGooglePlaces.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TOMGooglePlaces.m; sourceTree = "<group>"; };
 		F1AC75D61AFBFDBF00592C21 /* TOMGooglePlacesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TOMGooglePlacesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1AC75DC1AFBFDBF00592C21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -62,10 +69,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F19E0A061AFBFFA900536453 /* TOMGooglePlaces */ = {
+			isa = PBXGroup;
+			children = (
+				F19E0A0D1AFC04FB00536453 /* NSString+URLEscaping.h */,
+				F19E0A0E1AFC04FB00536453 /* NSString+URLEscaping.m */,
+				F19E0A0F1AFC04FB00536453 /* NSURL+URLParameters.h */,
+				F19E0A101AFC04FB00536453 /* NSURL+URLParameters.m */,
+				F19E0A071AFBFFA900536453 /* TOMGooglePlace.h */,
+				F19E0A081AFBFFA900536453 /* TOMGooglePlace.m */,
+				F19E0A0A1AFC024100536453 /* TOMGooglePlaceTerm.h */,
+				F19E0A0B1AFC024100536453 /* TOMGooglePlaceTerm.m */,
+			);
+			path = TOMGooglePlaces;
+			sourceTree = "<group>";
+		};
 		F1AC75C21AFBFDBF00592C21 = {
 			isa = PBXGroup;
 			children = (
-				F1AC75CD1AFBFDBF00592C21 /* TOMGooglePlaces */,
+				F19E0A061AFBFFA900536453 /* TOMGooglePlaces */,
 				F1AC75DA1AFBFDBF00592C21 /* TOMGooglePlacesTests */,
 				F1AC75CC1AFBFDBF00592C21 /* Products */,
 			);
@@ -78,15 +100,6 @@
 				F1AC75D61AFBFDBF00592C21 /* TOMGooglePlacesTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		F1AC75CD1AFBFDBF00592C21 /* TOMGooglePlaces */ = {
-			isa = PBXGroup;
-			children = (
-				F1AC75CE1AFBFDBF00592C21 /* TOMGooglePlaces.h */,
-				F1AC75D01AFBFDBF00592C21 /* TOMGooglePlaces.m */,
-			);
-			path = TOMGooglePlaces;
 			sourceTree = "<group>";
 		};
 		F1AC75DA1AFBFDBF00592C21 /* TOMGooglePlacesTests */ = {
@@ -193,7 +206,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F1AC75D11AFBFDBF00592C21 /* TOMGooglePlaces.m in Sources */,
+				F19E0A091AFBFFA900536453 /* TOMGooglePlace.m in Sources */,
+				F19E0A0C1AFC024100536453 /* TOMGooglePlaceTerm.m in Sources */,
+				F19E0A121AFC04FB00536453 /* NSURL+URLParameters.m in Sources */,
+				F19E0A111AFC04FB00536453 /* NSString+URLEscaping.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -362,6 +378,7 @@
 				F1AC75E11AFBFDBF00592C21 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F1AC75E21AFBFDBF00592C21 /* Build configuration list for PBXNativeTarget "TOMGooglePlacesTests" */ = {
 			isa = XCConfigurationList;
@@ -370,6 +387,7 @@
 				F1AC75E41AFBFDBF00592C21 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
