@@ -56,6 +56,8 @@ const NSString *kGoogleAPIKey = @"";
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
 
+        //NSLog(@"%@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+
         if (200 != httpResponse.statusCode)
         {
             completionBlock(nil, connectionError);

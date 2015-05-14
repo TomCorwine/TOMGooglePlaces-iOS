@@ -16,7 +16,9 @@
 {
     NSString *queryString = [[self class] urlParamters_StringFromQueryParameters:parameters];
     queryString = [@"?" stringByAppendingString:queryString];
-    return [self URLByAppendingPathComponent:queryString];
+    NSString *absoluteString = self.absoluteString;
+    NSString *urlString = [absoluteString stringByAppendingString:queryString];
+    return [NSURL URLWithString:urlString];
 }
 
 + (NSString *)urlParamters_StringFromQueryParameters:(NSDictionary *)parameters
