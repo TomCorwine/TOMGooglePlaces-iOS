@@ -10,10 +10,11 @@
 #import <CoreLocation/CoreLocation.h>
 
 typedef void (^TOMGooglePlaceResults)(NSArray *places, NSError *error);
+typedef void (^TOMGooglePlaceDetailsResult)(NSString *streetAddress, NSString *city, NSString *state, NSString *postalCode, NSError *error);
 
 @interface TOMGooglePlace : NSObject
 
-+ (void)placesFromString:(NSString *)string location:(CLLocation *)location completionBlock:(TOMGooglePlaceResults)completionBlock;
++ (void)placesFromString:(NSString *)string location:(CLLocation *)location apiKey:(NSString *)apiKey completionBlock:(TOMGooglePlaceResults)completionBlock;
 
 @property (nonatomic, strong, readonly) NSString *identifier;
 @property (nonatomic, strong, readonly) NSString *addressDescription;
@@ -23,34 +24,8 @@ typedef void (^TOMGooglePlaceResults)(NSArray *places, NSError *error);
 @property (nonatomic, strong, readonly) NSArray *terms;
 @property (nonatomic, strong, readonly) NSArray *types;
 
-@end
+@property (nonatomic, strong, readonly) NSString *streetAddress;
 
-/*
- {
-     "description" : "Paris, France",
-     "id" : "691b237b0322f28988f3ce03e321ff72a12167fd",
-     "matched_substrings" : [
-         {
-             "length" : 5,
-             "offset" : 0
-         }
-     ],
-     "place_id" : "ChIJD7fiBh9u5kcRYJSMaMOCCwQ",
-     "reference" : "CjQlAAAA_KB6EEceSTfkteSSF6U0pvumHCoLUboRcDlAH05N1pZJLmOQbYmboEi0SwXBSoI2EhAhj249tFDCVh4R-PXZkPK8GhTBmp_6_lWljaf1joVs1SH2ttB_tw",
-     "terms" : [
-         {
-             "offset" : 0,
-             "value" : "Paris"
-         },
-         {
-             "offset" : 7,
-             "value" : "France"
-         }
-     ],
-     "types" : [
-         "locality",
-         "political",
-         "geocode"
-    ]
- },
-*/
+- (void)detailsWithAPIKey:(NSString *)apiKey completionBlock:(TOMGooglePlaceDetailsResult)completionBlock;
+
+@end

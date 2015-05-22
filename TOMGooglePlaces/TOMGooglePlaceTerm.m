@@ -9,7 +9,7 @@
 
 @interface TOMGooglePlaceTerm ()
 
-@property (nonatomic, strong) NSNumber *offset;
+@property (nonatomic, strong) NSNumber *offsetN;
 @property (nonatomic, strong) NSString *value;
 
 @end
@@ -22,10 +22,24 @@
 {
     self = [super init];
     
-    self.offset = dictionary[@"offset"];
+    self.offsetN = dictionary[@"offset"];
     self.value = dictionary[@"value"];
     
     return self;
+}
+
+#pragma mark - Accessors
+
+- (NSUInteger)offset
+{
+    return self.offsetN.unsignedIntegerValue;
+}
+
+#pragma mark - NSObject Overrides
+
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<%@ offset:%d value:%@>", NSStringFromClass([self class]), self.offset, self.value];
 }
 
 @end

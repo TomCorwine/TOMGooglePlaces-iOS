@@ -9,7 +9,7 @@
 
 @interface TOMGooglePlaceTerm : NSObject
 
-@property (nonatomic, strong, readonly) NSNumber *offset;
+@property (nonatomic, readonly) NSUInteger offset;
 @property (nonatomic, strong, readonly) NSString *value;
 
 - (id)initWithDictionary:(NSDictionary *)dictionary;
