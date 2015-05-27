@@ -36,6 +36,9 @@ typedef void (^TOMGooglePlaceDetailsResult)(NSString *establishmentName, NSStrin
 @property (nonatomic, strong, readonly) NSString *establishmentName;
 @property (nonatomic, strong, readonly) NSString *streetAddress;
 
+@property (nonatomic, readonly) BOOL isStreetAddress;
+@property (nonatomic, readonly) BOOL isEstablishment;
+
 //@property (nonatomic, readonly) NSRange establishmentNameHighlightRange;
 //@property (nonatomic, readonly) NSRange streetAddressHighlightRange;
 

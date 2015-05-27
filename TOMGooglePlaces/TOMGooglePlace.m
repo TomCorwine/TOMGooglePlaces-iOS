@@ -62,7 +62,12 @@ const NSString *kGoogleAPIKey = @"";
         for (NSDictionary *dictionary in predictions)
         {
             TOMGooglePlace *place = [[TOMGooglePlace alloc] initWithDictionary:dictionary];
-            [mutableArray addObject:place];
+
+            // This is to filter out streets and transit stations
+            if ((place.isEstablishment && 1 == place.types.count)
+                || place.isStreetAddress) {
+                [mutableArray addObject:place];
+            }
         }
 
         completionBlock([NSArray arrayWithArray:mutableArray], error);
@@ -114,7 +119,7 @@ const NSString *kGoogleAPIKey = @"";
 
     // It seems that if there's only 1 type and it's "establishment", then
     // the first term is the name of an establishment.
-    if (1 == self.types.count && [self.types containsObject:@"establishment"])
+    if (1 == self.types.count && self.isEstablishment)
     {
         TOMGooglePlaceTerm *term = self.terms[0];
         return term.value;
@@ -131,52 +136,31 @@ const NSString *kGoogleAPIKey = @"";
         return nil;
     }
 
-    // When types contains "street_address', it seems the first term is the number,
-    // and the second term is the street.
-    if (self.terms.count >= 2 && [self.types containsObject:@"street_address"])
+    if (self.terms.count >= 2 && self.isStreetAddress)
     {
         TOMGooglePlaceTerm *term1 = self.terms[0];
         TOMGooglePlaceTerm *term2 = self.terms[1];
         return [@[term1.value, term2.value] componentsJoinedByString:@" "];
     }
-    // If types is only "establishment", then it seems the second term is always
-    // the full street address.
-    else if (1 == self.types.count && [self.types containsObject:@"establishment"])
+    else if (self.isEstablishment)
     {
         TOMGooglePlaceTerm *term = self.terms[1];
         return term.value;
     }
-    // It seems if types contains "establishment" but it's not the only type,
-    // then establishment name is actually the full street address.
-    else if ([self.types containsObject:@"establishment"])
+    else
     {
-        TOMGooglePlaceTerm *term = self.terms[0];
-        return term.value;
+        return nil;
     }
-    // If types contains "route", it seems the first term is the full street address.
-    else if ([self.types containsObject:@"route"])
-    {
-        TOMGooglePlaceTerm *term = self.terms[0];
-        return term.value;
-    }
-    else // Let's just guess
-    {
-        NSMutableArray *mutableArray = @[].mutableCopy;
-        for (TOMGooglePlaceTerm *term in self.terms)
-        {
-            // I'm just guessing the anything that starts before 10 characters
-            // should be part of the street address, and everthing after it is
-            // the city, state, etc.
-            // Not very robust
-            if (term.offset > 10) {
-                break;
-            }
+}
 
-            [mutableArray addObject:term.value];
-        }
+- (BOOL)isStreetAddress
+{
+    return [self.types containsObject:@"street_address"];
+}
 
-        return [mutableArray componentsJoinedByString:@" "];
-    }
+- (BOOL)isEstablishment
+{
+    return [self.types containsObject:@"establishment"];
 }
 
 /*
