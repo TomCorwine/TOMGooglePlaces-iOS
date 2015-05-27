@@ -11,7 +11,7 @@
 
 #import "NSURL+URLParameters.h"
 
-typedef void (^NetworkCompletionBlock)(NSDictionary *results, NSError *error);
+typedef void (^NetworkCompletionBlock)(NSDictionary *results, TOMGooglePlaceError error);
 
 const NSString *kGoogleAPIKey = @"";
 
@@ -39,8 +39,7 @@ const NSString *kGoogleAPIKey = @"";
     NSMutableDictionary *parameters = @{
                                  @"input": string,
                                  @"key": (apiKey ?: kGoogleAPIKey),
-                                 @"types": @"address",
-                                 @"language": @"en"
+                                 @"language": @"en",
                                  }.mutableCopy;
 
     if (location)
@@ -50,7 +49,7 @@ const NSString *kGoogleAPIKey = @"";
         [parameters addEntriesFromDictionary:@{@"location": locationString, @"radius": @"500"}];
     }
 
-    [self networkCallToURLString:@"https://maps.googleapis.com/maps/api/place/autocomplete/json" parameters:parameters completionBlock:^(NSDictionary *results, NSError *error) {
+    [self networkCallToURLString:@"https://maps.googleapis.com/maps/api/place/autocomplete/json" parameters:parameters completionBlock:^(NSDictionary *results, TOMGooglePlaceError error) {
 
         if (error) {
             completionBlock(nil, error);
@@ -107,24 +106,90 @@ const NSString *kGoogleAPIKey = @"";
 
 #pragma mark - Accessors
 
-- (NSString *)streetAddress
+- (NSString *)establishmentName
 {
-    NSMutableArray *mutableArray = @[].mutableCopy;
-    for (TOMGooglePlaceTerm *term in self.terms)
-    {
-        // I'm just guessing the anything that starts before 10 characters
-        // should be part of the street address, and everthing after it is
-        // the city, state, etc.
-        // Not very robust
-        if (term.offset > 10) {
-            break;
-        }
-
-        [mutableArray addObject:term.value];
+    if (0 == self.terms.count) {
+        return nil;
     }
 
-    return [mutableArray componentsJoinedByString:@" "];
+    // It seems that if there's only 1 type and it's "establishment", then
+    // the first term is the name of an establishment.
+    if (1 == self.types.count && [self.types containsObject:@"establishment"])
+    {
+        TOMGooglePlaceTerm *term = self.terms[0];
+        return term.value;
+    }
+    else
+    {
+        return nil;
+    }
 }
+
+- (NSString *)streetAddress
+{
+    if (0 == self.terms.count) {
+        return nil;
+    }
+
+    // When types contains "street_address', it seems the first term is the number,
+    // and the second term is the street.
+    if (self.terms.count >= 2 && [self.types containsObject:@"street_address"])
+    {
+        TOMGooglePlaceTerm *term1 = self.terms[0];
+        TOMGooglePlaceTerm *term2 = self.terms[1];
+        return [@[term1.value, term2.value] componentsJoinedByString:@" "];
+    }
+    // If types is only "establishment", then it seems the second term is always
+    // the full street address.
+    else if (1 == self.types.count && [self.types containsObject:@"establishment"])
+    {
+        TOMGooglePlaceTerm *term = self.terms[1];
+        return term.value;
+    }
+    // It seems if types contains "establishment" but it's not the only type,
+    // then establishment name is actually the full street address.
+    else if ([self.types containsObject:@"establishment"])
+    {
+        TOMGooglePlaceTerm *term = self.terms[0];
+        return term.value;
+    }
+    // If types contains "route", it seems the first term is the full street address.
+    else if ([self.types containsObject:@"route"])
+    {
+        TOMGooglePlaceTerm *term = self.terms[0];
+        return term.value;
+    }
+    else // Let's just guess
+    {
+        NSMutableArray *mutableArray = @[].mutableCopy;
+        for (TOMGooglePlaceTerm *term in self.terms)
+        {
+            // I'm just guessing the anything that starts before 10 characters
+            // should be part of the street address, and everthing after it is
+            // the city, state, etc.
+            // Not very robust
+            if (term.offset > 10) {
+                break;
+            }
+
+            [mutableArray addObject:term.value];
+        }
+
+        return [mutableArray componentsJoinedByString:@" "];
+    }
+}
+
+/*
+- (NSRange)establishmentNameHighlightRange
+{
+    return NSMakeRange(0, 0);
+}
+
+- (NSRange)streetAddressHighlightRange
+{
+    return NSMakeRange(0, 0);
+}
+*/
 
 #pragma mark - Details
 
@@ -137,14 +202,16 @@ const NSString *kGoogleAPIKey = @"";
                                  @"key": (apiKey ?: kGoogleAPIKey)
                                  };
 
-    [[self class] networkCallToURLString:@"https://maps.googleapis.com/maps/api/place/details/json" parameters:parameters completionBlock:^(NSDictionary *results, NSError *error) {
+    [[self class] networkCallToURLString:@"https://maps.googleapis.com/maps/api/place/details/json" parameters:parameters completionBlock:^(NSDictionary *results, TOMGooglePlaceError error) {
 
         if (error) {
-            completionBlock(nil, nil, nil, nil, error);
+            completionBlock(nil, nil, nil, nil, nil, error);
             return;
         }
 
-        NSArray *array = results[@"result"][@"address_components"];
+        NSDictionary *result = results[@"result"];
+        NSString *name = result[@"name"];
+        NSArray *array = result[@"address_components"];
 
         NSString *streetNumber;
         NSString *route;
@@ -173,8 +240,11 @@ const NSString *kGoogleAPIKey = @"";
             }
         }
 
-        NSString *streetAddress = [NSString stringWithFormat:@"%@ %@", streetNumber, route];
-        completionBlock(streetAddress, city, state, postalCode, nil);
+        NSString *streetAddress;
+        if (streetNumber && route) {
+            streetAddress = [NSString stringWithFormat:@"%@ %@", streetNumber, route];
+        }
+        completionBlock(name, streetAddress, city, state, postalCode, nil);
     }];
 }
 
@@ -193,7 +263,7 @@ const NSString *kGoogleAPIKey = @"";
 
         if (200 != httpResponse.statusCode)
         {
-            completionBlock(nil, connectionError);
+            completionBlock(nil, TOMGooglePlaceErrorNetworkError);
             return;
         }
 
@@ -201,19 +271,30 @@ const NSString *kGoogleAPIKey = @"";
         NSDictionary *dictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
         if (nil == dictionary || error)
         {
-            completionBlock(nil, error);
+            completionBlock(nil, TOMGooglePlaceErrorNetworkError);
             return;
         }
 
         NSString *status = dictionary[@"status"];
 
-        if (NO == [status isEqualToString:@"OK"])
+        if ([status isEqualToString:@"OK"] || [status isEqualToString:@"ZERO_RESULTS"])
         {
-            completionBlock(nil, connectionError);
-            return;
+            completionBlock(dictionary, TOMGooglePlaceErrorNone);
         }
+        else
+        {
+            TOMGooglePlaceError errorCode = TOMGooglePlaceErrorUnknown;
 
-        completionBlock(dictionary, nil);
+            if ([status isEqualToString:@"OVER_QUERY_LIMIT"]) {
+                errorCode = TOMGooglePlaceErrorExceedsQuota;
+            } else if ([status isEqualToString:@"REQUEST_DENIED"]) {
+                errorCode = TOMGooglePlaceErrorDenied;
+            } else if ([status isEqualToString:@"INVALID_REQUEST"]) {
+                errorCode = TOMGooglePlaceErrorRequestInvalid;
+            }
+
+            completionBlock(nil, errorCode);
+        }
     }];
 }
 

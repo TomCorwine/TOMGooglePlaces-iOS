@@ -9,8 +9,17 @@
 
 #import <CoreLocation/CoreLocation.h>
 
-typedef void (^TOMGooglePlaceResults)(NSArray *places, NSError *error);
-typedef void (^TOMGooglePlaceDetailsResult)(NSString *streetAddress, NSString *city, NSString *state, NSString *postalCode, NSError *error);
+typedef NS_ENUM(short, TOMGooglePlaceError) {
+    TOMGooglePlaceErrorNone,            // No error
+    TOMGooglePlaceErrorUnknown,         // An error that's not documented
+    TOMGooglePlaceErrorDenied,          // Denied by Google - perhaps API key is bad
+    TOMGooglePlaceErrorExceedsQuota,    // Exceeded Google's Quota
+    TOMGooglePlaceErrorRequestInvalid,  // Request missing parameters, probably blank string
+    TOMGooglePlaceErrorNetworkError     // The network connection failed in some way
+};
+
+typedef void (^TOMGooglePlaceResults)(NSArray *places, TOMGooglePlaceError error);
+typedef void (^TOMGooglePlaceDetailsResult)(NSString *establishmentName, NSString *streetAddress, NSString *city, NSString *state, NSString *postalCode, TOMGooglePlaceError error);
 
 @interface TOMGooglePlace : NSObject
 
@@ -24,7 +33,11 @@ typedef void (^TOMGooglePlaceDetailsResult)(NSString *streetAddress, NSString *c
 @property (nonatomic, strong, readonly) NSArray *terms;
 @property (nonatomic, strong, readonly) NSArray *types;
 
+@property (nonatomic, strong, readonly) NSString *establishmentName;
 @property (nonatomic, strong, readonly) NSString *streetAddress;
+
+//@property (nonatomic, readonly) NSRange establishmentNameHighlightRange;
+//@property (nonatomic, readonly) NSRange streetAddressHighlightRange;
 
 - (void)detailsWithAPIKey:(NSString *)apiKey completionBlock:(TOMGooglePlaceDetailsResult)completionBlock;
 
