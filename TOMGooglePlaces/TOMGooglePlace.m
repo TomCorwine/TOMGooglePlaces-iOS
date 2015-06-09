@@ -36,6 +36,13 @@ const NSString *kGoogleAPIKey = @"";
     NSAssert(completionBlock, @"What'd think you're doing calling this without a completion block?");
     NSAssert(string, @"Ummm, the string is nil.");
 
+    NSDictionary *cachedResults = [self cache][string];
+    if (cachedResults)
+    {
+        [self processResults:cachedResults completionBlock:completionBlock];
+        return;
+    }
+
     NSMutableDictionary *parameters = @{
                                  @"input": string,
                                  @"key": (apiKey ?: kGoogleAPIKey),
@@ -55,23 +62,41 @@ const NSString *kGoogleAPIKey = @"";
             completionBlock(nil, error);
             return;
         }
-
-        NSArray *predictions = results[@"predictions"];
-
-        NSMutableArray *mutableArray = @[].mutableCopy;
-        for (NSDictionary *dictionary in predictions)
-        {
-            TOMGooglePlace *place = [[TOMGooglePlace alloc] initWithDictionary:dictionary];
-
-            // This is to filter out streets and transit stations
-            if ((place.isEstablishment && 1 == place.types.count)
-                || place.isStreetAddress) {
-                [mutableArray addObject:place];
-            }
-        }
-
-        completionBlock([NSArray arrayWithArray:mutableArray], error);
+#ifndef DEBUG // Caching makes it harder to debug queries
+        [self cache][string] = results;
+#endif
+        [self processResults:results completionBlock:completionBlock];
     }];
+}
+
++ (void)processResults:(NSDictionary *)results completionBlock:(TOMGooglePlaceResults)completionBlock
+{
+    NSArray *predictions = results[@"predictions"];
+
+    NSMutableArray *mutableArray = @[].mutableCopy;
+    for (NSDictionary *dictionary in predictions)
+    {
+        TOMGooglePlace *place = [[TOMGooglePlace alloc] initWithDictionary:dictionary];
+
+        // This is to filter out transit stations
+        if (place.isEstablishment || place.isStreetAddress || place.isRoute) {
+            [mutableArray addObject:place];
+        }
+    }
+
+    completionBlock([NSArray arrayWithArray:mutableArray], nil);
+}
+
+#pragma mark - Caching
+
++ (NSMutableDictionary *)cache
+{
+    static NSMutableDictionary *mutableDictionary;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        mutableDictionary = @{}.mutableCopy;
+    });
+    return mutableDictionary;
 }
 
 #pragma mark - Factory
@@ -132,11 +157,11 @@ const NSString *kGoogleAPIKey = @"";
 
 - (NSString *)streetAddress
 {
-    if (0 == self.terms.count) {
+    if (self.terms.count < 2) {
         return nil;
     }
 
-    if (self.terms.count >= 2 && self.isStreetAddress)
+    if (self.isStreetAddress)
     {
         TOMGooglePlaceTerm *term1 = self.terms[0];
         TOMGooglePlaceTerm *term2 = self.terms[1];
@@ -145,6 +170,11 @@ const NSString *kGoogleAPIKey = @"";
     else if (self.isEstablishment)
     {
         TOMGooglePlaceTerm *term = self.terms[1];
+        return term.value;
+    }
+    else if (self.isRoute)
+    {
+        TOMGooglePlaceTerm *term = self.terms[0];
         return term.value;
     }
     else
@@ -160,7 +190,21 @@ const NSString *kGoogleAPIKey = @"";
 
 - (BOOL)isEstablishment
 {
-    return [self.types containsObject:@"establishment"];
+    return ([self.types containsObject:@"establishment"] && 1 == self.types.count);
+}
+
+- (BOOL)isRoute
+{
+    return [self.types containsObject:@"route"];
+}
+
+- (BOOL)isTrainStation
+{
+    return (
+            [self.types containsObject:@"subway_station"]
+            || [self.types containsObject:@"train_station"]
+            || [self.types containsObject:@"transit_station"]
+            );
 }
 
 /*
@@ -238,9 +282,9 @@ const NSString *kGoogleAPIKey = @"";
 {
     NSURL *url = [NSURL URLWithString:urlString];
     url = [url urlParamters_URLWithQueryParameters:parameters];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
 
-    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue currentQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
 
         NSLog(@"%@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
