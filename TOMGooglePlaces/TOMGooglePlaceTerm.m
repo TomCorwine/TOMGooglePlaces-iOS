@@ -39,7 +39,7 @@
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"<%@ offset:%d value:%@>", NSStringFromClass([self class]), self.offset, self.value];
+    return self.value;
 }
 
 @end

@@ -34,15 +34,17 @@ typedef void (^TOMGooglePlaceDetailsResult)(NSString *establishmentName, NSStrin
 @property (nonatomic, strong, readonly) NSArray *types;
 
 @property (nonatomic, strong, readonly) NSString *establishmentName;
+@property (nonatomic, strong, readonly) NSString *fullAddress;
 @property (nonatomic, strong, readonly) NSString *streetAddress;
+@property (nonatomic, strong, readonly) NSString *municipality;
 
 @property (nonatomic, readonly) BOOL isStreetAddress;
 @property (nonatomic, readonly) BOOL isEstablishment;
 @property (nonatomic, readonly) BOOL isRoute;
 @property (nonatomic, readonly) BOOL isTrainStation;
 
-//@property (nonatomic, readonly) NSRange establishmentNameHighlightRange;
-//@property (nonatomic, readonly) NSRange streetAddressHighlightRange;
+@property (nonatomic, readonly) NSRange establishmentNameHighlightRange;
+@property (nonatomic, readonly) NSRange streetAddressHighlightRange;
 
 - (void)detailsWithAPIKey:(NSString *)apiKey completionBlock:(TOMGooglePlaceDetailsResult)completionBlock;
 

@@ -25,7 +25,11 @@ const NSString *kGoogleAPIKey = @"";
 @property (nonatomic, strong) NSArray *terms;
 @property (nonatomic, strong) NSArray *types;
 
+@property (nonatomic, readonly) NSRange highlightRange;
+
 @end
+
+const NSUInteger kNumberOfMunicipalityItems = 3; // city, state, country
 
 @implementation TOMGooglePlace
 
@@ -78,8 +82,9 @@ const NSString *kGoogleAPIKey = @"";
     {
         TOMGooglePlace *place = [[TOMGooglePlace alloc] initWithDictionary:dictionary];
 
-        // This is to filter out transit stations
-        if (place.isEstablishment || place.isStreetAddress || place.isRoute) {
+        // This is to filter out nonsense stuff
+        if ((place.isEstablishment || place.isStreetAddress || place.isRoute)
+            && place.terms.count > 3) {
             [mutableArray addObject:place];
         }
     }
@@ -138,49 +143,66 @@ const NSString *kGoogleAPIKey = @"";
 
 - (NSString *)establishmentName
 {
-    if (0 == self.terms.count) {
+    if (NO == self.isEstablishment || self.terms.count < 1) {
         return nil;
     }
 
-    // It seems that if there's only 1 type and it's "establishment", then
-    // the first term is the name of an establishment.
-    if (1 == self.types.count && self.isEstablishment)
-    {
-        TOMGooglePlaceTerm *term = self.terms[0];
-        return term.value;
-    }
-    else
-    {
+    // The first term is the name of an establishment.
+    TOMGooglePlaceTerm *term = self.terms[0];
+    return term.value;
+}
+
+- (NSString *)fullAddress
+{
+    NSString *streetAddress = self.streetAddress;
+    NSString *municipality = self.municipality;
+
+    if (streetAddress && municipality) {
+        return [@[streetAddress, municipality] componentsJoinedByString:@"\n"];
+    } else if (municipality) {
+        return municipality;
+    } else if (streetAddress) {
+        return streetAddress;
+    } else {
         return nil;
     }
 }
 
 - (NSString *)streetAddress
 {
-    if (self.terms.count < 2) {
+    NSArray *terms = self.terms;
+
+    // if establishment, remove first term which seems to always be the establishment name
+    NSInteger index = (self.isEstablishment ? 1 : 0);
+    NSInteger length = terms.count - kNumberOfMunicipalityItems - index;
+
+    if (length < 1) {
         return nil;
     }
 
-    if (self.isStreetAddress)
-    {
-        TOMGooglePlaceTerm *term1 = self.terms[0];
-        TOMGooglePlaceTerm *term2 = self.terms[1];
-        return [@[term1.value, term2.value] componentsJoinedByString:@" "];
-    }
-    else if (self.isEstablishment)
-    {
-        TOMGooglePlaceTerm *term = self.terms[1];
-        return term.value;
-    }
-    else if (self.isRoute)
-    {
-        TOMGooglePlaceTerm *term = self.terms[0];
-        return term.value;
-    }
-    else
-    {
+    NSRange range = NSMakeRange(index, length);
+    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:range];
+    NSArray *components = [terms objectsAtIndexes:indexSet];
+
+    return [components componentsJoinedByString:@" "];
+}
+
+- (NSString *)municipality
+{
+    NSArray *terms = self.terms;
+
+    // If there's not at least three items, then I don't know what's going on.
+    if (terms.count < kNumberOfMunicipalityItems) {
         return nil;
     }
+
+    NSInteger index = terms.count - kNumberOfMunicipalityItems;
+    NSRange range = NSMakeRange(index, kNumberOfMunicipalityItems);
+
+    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:range];
+    NSArray *components = [terms objectsAtIndexes:indexSet];
+
+    return [components componentsJoinedByString:@", "];
 }
 
 - (BOOL)isStreetAddress
@@ -190,7 +212,9 @@ const NSString *kGoogleAPIKey = @"";
 
 - (BOOL)isEstablishment
 {
-    return ([self.types containsObject:@"establishment"] && 1 == self.types.count);
+    // It seems that if there's only 1 type and it's "establishment", then
+    // it's an establishment that's not a train station or something stupid like that
+    return (1 == self.types.count && [self.types containsObject:@"establishment"]);
 }
 
 - (BOOL)isRoute
@@ -201,23 +225,45 @@ const NSString *kGoogleAPIKey = @"";
 - (BOOL)isTrainStation
 {
     return (
-            [self.types containsObject:@"subway_station"]
+            [self.types containsObject:@"transit_station"]
             || [self.types containsObject:@"train_station"]
-            || [self.types containsObject:@"transit_station"]
+            || [self.types containsObject:@"subway_station"]
             );
 }
 
-/*
 - (NSRange)establishmentNameHighlightRange
 {
-    return NSMakeRange(0, 0);
+    NSUInteger establishmentNameLength = self.establishmentName.length;
+    NSRange range = self.highlightRange;
+
+    return (range.location + range.length <= establishmentNameLength ? range : NSMakeRange(0, 0));
 }
 
 - (NSRange)streetAddressHighlightRange
 {
-    return NSMakeRange(0, 0);
+    NSRange range = self.highlightRange;
+
+    if (self.establishmentNameHighlightRange.length) {
+        // If the establishment name is being highlighted, then the address highlight range is 0, 0
+        return NSMakeRange(0, 0);
+    }
+
+    return (range.location + range.length <= self.streetAddress.length ? range : NSMakeRange(0, 0));
 }
-*/
+
+#pragma mark - Private Accessors
+
+- (NSRange)highlightRange
+{
+    NSArray *matchedSubstrings = self.matchedSubstrings;
+    
+    if (matchedSubstrings.count < 1) {
+        return NSMakeRange(0, 0);
+    }
+    
+    NSValue *rangeValue = matchedSubstrings[0];
+    return rangeValue.rangeValue;
+}
 
 #pragma mark - Details
 
@@ -287,7 +333,7 @@ const NSString *kGoogleAPIKey = @"";
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue currentQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
 
-        //NSLog(@"%@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+        NSLog(@"%@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
 
         if (200 != httpResponse.statusCode)
         {
