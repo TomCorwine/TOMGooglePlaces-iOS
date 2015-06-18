@@ -332,9 +332,9 @@ const NSUInteger kNumberOfMunicipalityItems = 3; // city, state, country
 
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue currentQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-
+#if DEBUG
         NSLog(@"%@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-
+#endif
         if (200 != httpResponse.statusCode)
         {
             completionBlock(nil, TOMGooglePlaceErrorNetworkError);
