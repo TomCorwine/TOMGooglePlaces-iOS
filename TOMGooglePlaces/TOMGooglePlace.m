@@ -298,13 +298,13 @@ const NSUInteger kNumberOfMunicipalityItems = 3; // city, state, country
             NSArray *types = item[@"types"];
 
             if ([types containsObject:@"street_number"]) {
-                streetNumber = item[@"short_name"];
+                streetNumber = item[@"long_name"];
             }
             else if ([types containsObject:@"route"]) {
-                route = item[@"short_name"];
+                route = item[@"long_name"];
             }
             else if ([types containsObject:@"locality"]) {
-                city = item[@"short_name"];
+                city = item[@"long_name"];
             }
             else if ([types containsObject:@"administrative_area_level_1"]) {
                 state = item[@"short_name"];
