@@ -11,6 +11,7 @@
 @interface NSURL (URLParameters)
 
 - (NSURL *)urlParamters_URLWithQueryParameters:(NSDictionary *)parameters;
+- (NSDictionary *)urlParameters_DictionaryFromQueryParameters;
 + (NSString *)urlParamters_StringFromQueryParameters:(NSDictionary *)parameters;
 
 @end
