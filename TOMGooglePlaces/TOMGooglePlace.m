@@ -303,7 +303,7 @@ const NSUInteger kNumberOfMunicipalityItems = 3; // city, state, country
             else if ([types containsObject:@"route"]) {
                 route = item[@"long_name"];
             }
-            else if ([types containsObject:@"locality"]) {
+            else if ([types containsObject:@"locality"] || [types containsObject:@"sublocality"]) {
                 city = item[@"long_name"];
             }
             else if ([types containsObject:@"administrative_area_level_1"]) {
