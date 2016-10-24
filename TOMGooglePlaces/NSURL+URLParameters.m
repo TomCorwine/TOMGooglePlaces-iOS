@@ -105,6 +105,7 @@
     }
     else if ([value isKindOfClass:[NSNumber class]])
     {
+        /*
         static NSNumberFormatter *numberFormatter;
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
@@ -114,6 +115,12 @@
 
         value = [numberFormatter stringFromNumber:value];
         return [value URLEscaping_percentEscapedString];
+         */
+
+        NSNumber *number = value;
+        NSString *string = number.stringValue;
+
+        return string;
     }
     else
     {
