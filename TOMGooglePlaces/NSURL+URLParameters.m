@@ -125,6 +125,7 @@
     else
     {
         NSAssert(NO, @"Parameter value must be a NSString or NSNumber.");
+        return nil;
     }
 }
 
